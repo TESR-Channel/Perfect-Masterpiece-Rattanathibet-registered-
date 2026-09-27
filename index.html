@@ -126,6 +126,10 @@ body.lock{overflow:hidden}
 
 .mine{display:grid;gap:12px;background:var(--green-soft);border:2px solid #A7DDB9;border-radius:16px;padding:16px;margin-top:22px}
 .mine b{display:block;color:var(--green);font-family:'Kanit',sans-serif;font-size:1.2rem}
+.act2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.act2.one{grid-template-columns:1fr}
+@media (max-width:360px){.act2{grid-template-columns:1fr}}
+.btn-share{background:var(--green);color:#fff}
 .tip{margin:0;color:var(--muted);font-size:.98rem;text-align:center}
 .alert .btn{margin-top:12px;min-height:54px;font-size:1.1rem}
 
@@ -300,7 +304,10 @@ body.lock{overflow:hidden}
     <p style="margin:6px 0 0">นี่คือ <b>ตั๋วเข้างาน</b> ของท่าน<br>กรุณาบันทึกเก็บไว้ แล้วแสดง QR Code ในวันประชุม</p>
     <img class="card" id="cardImg" alt="ตั๋วเข้างาน">
     <div class="btn-row">
-      <button type="button" class="btn btn-primary" id="saveCard">⬇️ บันทึกตั๋วลงเครื่อง</button>
+      <div class="act2">
+        <button type="button" class="btn btn-primary" id="saveCard">⬇️ บันทึกรูป</button>
+        <button type="button" class="btn btn-share" id="shareCard">📤 แชร์ตั๋ว</button>
+      </div>
       <p class="tip">ถ้ากดบันทึกไม่ได้ ให้ <b>กดค้างที่รูปตั๋ว</b> แล้วเลือก “บันทึกรูปภาพ” หรือแคปหน้าจอไว้</p>
       <button type="button" class="btn btn-ghost" id="again">ลงทะเบียนให้บ้านหลังอื่น</button>
     </div>
@@ -489,14 +496,24 @@ async function showTicket(t) {
   openModal(); renderMine();
 }
 
-$('saveCard').onclick = async () => {
+/* บันทึก = ดาวน์โหลดไฟล์ลงเครื่อง */
+$('saveCard').onclick = () => {
   if (!ticketBlob) return;
-  const file = new File([ticketBlob], ticketName, { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'ตั๋วเข้างานประชุมใหญ่ลูกบ้าน 2/2569' }); return; } catch (e) { if (e.name === 'AbortError') return; }
-  }
   const a = document.createElement('a'); a.href = URL.createObjectURL(ticketBlob); a.download = ticketName;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
+/* แชร์ = ส่งรูปตั๋วเข้า LINE / แอปอื่น ผ่านเมนูแชร์ของเครื่อง */
+const canShareFiles = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] })); } catch (e) { return false; } };
+if (!navigator.share) { $('shareCard').hidden = true; $('shareCard').parentElement.classList.add('one'); }
+$('shareCard').onclick = async () => {
+  if (!ticketBlob) return;
+  const file = new File([ticketBlob], ticketName, { type: 'image/png' });
+  const title = 'ตั๋วเข้างานประชุมใหญ่ลูกบ้าน 2/2569';
+  try {
+    if (canShareFiles()) await navigator.share({ files: [file], title });
+    else await navigator.share({ title, text: 'ลงทะเบียนประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569', url: location.origin + location.pathname });
+  } catch (e) { /* ผู้ใช้กดยกเลิก */ }
 };
 
 function wrapThai(c, text, maxW) {
