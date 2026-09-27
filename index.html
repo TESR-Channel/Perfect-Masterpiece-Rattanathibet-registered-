@@ -117,6 +117,12 @@ body.lock{overflow:hidden}
 #step1{margin-top:22px}
 .field.err .sigbox{border-color:var(--red);background:var(--red-soft)}
 .sep{border:0;border-top:2px dashed var(--line);margin:8px 0 22px}
+.hrow{display:flex;gap:10px}
+.hrow input{flex:1;min-width:0}
+.slash{flex:0 0 64px;min-height:58px;border-radius:12px;border:2px solid var(--navy);background:var(--gold-soft);color:var(--navy);
+  font-family:'Kanit',sans-serif;font-size:1.9rem;font-weight:600;cursor:pointer}
+.slash:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+.ex2{color:var(--muted);font-size:.95rem;margin-top:6px}
 .field .note{font-weight:600;margin-top:6px;font-size:1rem;color:#6B4E00}
 
 .mine{display:grid;gap:12px;background:var(--green-soft);border:2px solid #A7DDB9;border-radius:16px;padding:16px;margin-top:22px}
@@ -186,7 +192,11 @@ body.lock{overflow:hidden}
 
     <div class="field" id="f-house">
       <label for="house">บ้านเลขที่ <span class="ex">เช่น 112/180</span></label>
-      <input id="house" inputmode="decimal" autocomplete="off" placeholder="112/…" required>
+      <div class="hrow">
+        <input id="house" inputmode="decimal" autocomplete="off" placeholder="112/…" required>
+        <button type="button" class="slash" id="slashBtn" aria-label="ใส่เครื่องหมายทับ">/</button>
+      </div>
+      <div class="ex2">ใส่ “/” ได้โดยกดปุ่ม <b>/</b> ด้านขวา หรือกดปุ่ม <b>.</b> บนแป้นตัวเลข</div>
       <div class="msg">กรุณากรอกบ้านเลขที่ให้ถูกต้อง เช่น 112/180</div>
       <div class="note" id="houseNote" hidden></div>
     </div>
@@ -272,7 +282,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/\D/g, '');
 const fmtPhone = s => { const d = digits(s); return d.length === 10 ? `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}` : d; };
-const normHouse = s => String(s).replace(/\s+/g, '').replace(/[\\|]/g, '/');
+const normHouse = s => String(s).replace(/\s+/g, '').replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/');
 
 /* Contacts */
 $('contactList').innerHTML = CONTACTS.map(c => `
@@ -323,6 +333,19 @@ const alertBox = (id, html, kind = 'err') => { $(id).innerHTML = html ? `<div cl
 
 /* ตรวจบ้านซ้ำทันทีที่กรอกบ้านเลขที่เสร็จ (ชั้นที่ 1) */
 let houseExists = false;
+/* แป้นตัวเลขมือถือไม่มี “/” — แปลง . , - เป็น / อัตโนมัติ และมีปุ่ม / ให้กด */
+$('house').addEventListener('input', e => {
+  const el = e.target, pos = el.selectionStart, v = el.value.replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/');
+  if (v !== el.value) { el.value = v; try { el.setSelectionRange(Math.min(pos, v.length), Math.min(pos, v.length)); } catch (err) {} }
+});
+$('slashBtn').addEventListener('pointerdown', e => e.preventDefault()); // ไม่ให้คีย์บอร์ดปิด
+$('slashBtn').onclick = () => {
+  const el = $('house'), v = el.value, a = el.selectionStart ?? v.length, b = el.selectionEnd ?? v.length;
+  if (v.includes('/')) { el.focus(); return; }
+  el.value = v.slice(0, a) + '/' + v.slice(b);
+  el.focus(); try { el.setSelectionRange(a + 1, a + 1); } catch (err) {}
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+};
 $('house').addEventListener('input', () => { $('houseNote').hidden = true; houseExists = false; });
 $('house').addEventListener('blur', async () => {
   const h = normHouse($('house').value);
