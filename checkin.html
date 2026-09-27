@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เช็กอินหน้างาน · ประชุมใหญ่ลูกบ้าน 2/2569</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0E2A5E">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0E2A5E; --navy-deep:#0A1F47; --gold:#F2B81E; --gold-soft:#FFF4D1;
+  --sky:#EAF2FC; --ink:#1B2433; --muted:#4A5568; --line:#C9D6E8;
+  --green:#15803D; --green-soft:#E3F5EA; --orange:#B45309; --orange-soft:#FFF1DC; --red:#B42318; --red-soft:#FDECEA;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:'Sarabun',Tahoma,'Leelawadee UI',sans-serif;font-size:19px;line-height:1.55}
+h1,h2{font-family:'Kanit','Sarabun',Tahoma,sans-serif;font-weight:600;line-height:1.3;margin:0}
+[hidden]{display:none!important}
+.top{background:var(--navy);color:#fff;padding:16px 18px 18px}
+.top h1{font-size:1.2rem}
+.top .sub{color:var(--gold);font-size:.95rem}
+.count{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.count div{background:rgba(255,255,255,.1);border-radius:12px;padding:8px 12px}
+.count b{display:block;font-family:'Kanit',sans-serif;font-size:1.6rem;color:#fff;line-height:1.2}
+.count span{font-size:.9rem;color:#C9D6E8}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+.panel{background:#fff;border-radius:18px;padding:22px 20px;box-shadow:0 2px 0 var(--line);margin-bottom:14px}
+.panel h2{font-size:1.25rem;color:var(--navy);margin-bottom:10px}
+input{width:100%;font:inherit;font-size:1.4rem;padding:14px 16px;border:2px solid var(--line);border-radius:12px;min-height:60px;text-align:center}
+input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 4px rgba(242,184,30,.45)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;border:0;border-radius:14px;
+  font-family:'Kanit',sans-serif;font-weight:600;font-size:1.25rem;cursor:pointer;padding:12px 18px;margin-top:12px}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy-deep)}
+.btn-green{background:var(--green);color:#fff}
+.btn-ghost{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.btn:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+.btn[disabled]{opacity:.6}
+.btn svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.err{color:var(--red);font-weight:700;margin-top:8px;min-height:1.4em}
+
+/* Result */
+.result{border-radius:20px;padding:26px 20px;text-align:center;margin-bottom:14px;border:3px solid}
+.result .big{width:92px;height:92px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;color:#fff;font-size:3rem;font-weight:700;
+  animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.result .big{animation:none}}
+.result h2{font-size:1.6rem}
+.result .house{font-family:'Kanit',sans-serif;font-size:2.6rem;color:var(--navy-deep);line-height:1.2;margin-top:8px}
+.result .name{font-size:1.35rem;font-weight:700}
+.result .meta{color:var(--muted);margin-top:4px}
+.r-ok{background:var(--green-soft);border-color:#A7DDB9}.r-ok .big{background:var(--green)}.r-ok h2{color:var(--green)}
+.r-dup{background:var(--orange-soft);border-color:#F4C889}.r-dup .big{background:var(--orange)}.r-dup h2{color:var(--orange)}
+.r-bad{background:var(--red-soft);border-color:#F5C2BD}.r-bad .big{background:var(--red)}.r-bad h2{color:var(--red)}
+.r-info{background:#fff;border-color:var(--line)}.r-info .big{background:var(--navy)}.r-info h2{color:var(--navy)}
+.people{display:inline-block;background:#fff;border-radius:10px;padding:2px 14px;margin-top:8px;font-weight:700;color:var(--green)}
+
+/* Scanner */
+.scan{position:fixed;inset:0;background:#000;z-index:10;display:flex;flex-direction:column}
+.scan video{flex:1;width:100%;object-fit:cover;min-height:0}
+.scan .frame{position:absolute;left:50%;top:42%;width:min(70vw,320px);aspect-ratio:1;transform:translate(-50%,-50%);
+  border:4px solid var(--gold);border-radius:24px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+.scan .bar{position:relative;background:var(--navy-deep);color:#fff;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));text-align:center}
+.scan .bar p{margin:0 0 4px}
+.foot{text-align:center;margin:18px 0 30px}
+.foot button{background:none;border:0;color:var(--muted);font:inherit;text-decoration:underline;padding:10px;cursor:pointer}
+.spin{width:24px;height:24px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
+.spin.dark{border-color:rgba(14,42,94,.2);border-top-color:var(--navy)}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>จุดลงทะเบียนหน้างาน</h1>
+  <div class="sub">การประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569 · ป้อม 8 และป้อม 6</div>
+  <div class="count" id="count" hidden>
+    <div><b id="cHouse">–</b><span>บ้านที่มาแล้ว</span></div>
+    <div><b id="cPeople">–</b><span>ผู้เข้าร่วมที่มาแล้ว (คน)</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- PIN -->
+  <section class="panel" id="pinPanel" hidden>
+    <h2>สำหรับเจ้าหน้าที่</h2>
+    <p style="margin:0 0 12px;color:var(--muted)">กรอกรหัสเจ้าหน้าที่ครั้งเดียว เครื่องนี้จะจำไว้</p>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="รหัสเจ้าหน้าที่">
+    <div class="err" id="pinErr"></div>
+    <button class="btn btn-primary" id="pinBtn" type="button">เข้าสู่โหมดเจ้าหน้าที่</button>
+  </section>
+
+  <div id="staff" hidden>
+    <div id="result"></div>
+
+    <button class="btn btn-gold" id="scanBtn" type="button">
+      <svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>
+      สแกน QR Code
+    </button>
+
+    <section class="panel" style="margin-top:14px">
+      <h2>ลูกบ้านไม่มีตั๋ว? ค้นหาด้วยบ้านเลขที่</h2>
+      <input id="house" inputmode="decimal" placeholder="เช่น 112/180" autocomplete="off">
+      <div class="err" id="houseErr"></div>
+      <button class="btn btn-ghost" id="findBtn" type="button">ค้นหา</button>
+    </section>
+  </div>
+
+  <div class="foot"><button type="button" id="logout" hidden>ออกจากโหมดเจ้าหน้าที่</button></div>
+</main>
+
+<div class="scan" id="scan" hidden>
+  <video id="video" playsinline muted></video>
+  <div class="frame"></div>
+  <div class="bar">
+    <p>เล็ง QR Code บนตั๋วให้อยู่ในกรอบสีทอง</p>
+    <button class="btn btn-ghost" id="closeScan" type="button" style="margin-top:8px">ปิดกล้อง</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PIN_KEY = 'pm-staff-pin';
+const getPin = () => { try { return localStorage.getItem(PIN_KEY) || ''; } catch (e) { return ''; } };
+const setPin = v => { try { v ? localStorage.setItem(PIN_KEY, v) : localStorage.removeItem(PIN_KEY); } catch (e) {} };
+const params = new URLSearchParams(location.search);
+let pendingToken = params.get('t');
+if (pendingToken) history.replaceState(null, '', location.pathname);
+
+/* ---------- API ---------- */
+async function apiGet(q) {
+  if (!API_URL) return demoGet(q);
+  return fetch(`${API_URL}?${new URLSearchParams(q)}`).then(r => r.json());
+}
+async function apiPost(body) {
+  if (!API_URL) return demoPost(body);
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).then(r => r.json());
+}
+// โหมดทดลอง (ยังไม่ได้ใส่ API_URL)
+const demo = { seen: {}, h: 0, p: 0 };
+async function demoPost(b) {
+  await new Promise(r => setTimeout(r, 500));
+  const base = { ref: 'DEMO-001', house: '112/180', name: 'สมชาย ใจดี', people: 2 };
+  if (demo.seen[b.t]) return { ok: true, already: true, ...base, inAt: demo.seen[b.t], stats: { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 } };
+  demo.seen[b.t] = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); demo.h++; demo.p += 2;
+  return { ok: true, already: false, ...base, inAt: demo.seen[b.t], stats: { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 } };
+}
+async function demoGet(q) {
+  await new Promise(r => setTimeout(r, 400));
+  if (q.action === 'findHouse') return { ok: true, token: 'demo-' + q.house, ref: 'DEMO-002', house: q.house, name: 'ทดลอง ระบบ', people: 1, status: 'ยังไม่เข้างาน' };
+  return { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 };
+}
+
+/* ---------- UI ---------- */
+function showStats(s) {
+  if (!s) return;
+  $('count').hidden = false;
+  $('cHouse').textContent = `${s.inHouses} / ${s.houses}`;
+  $('cPeople').textContent = `${s.inPeople} / ${s.people}`;
+}
+function card(cls, icon, title, r, extra = '') {
+  $('result').innerHTML = `<div class="result ${cls}" role="status" aria-live="assertive">
+    <div class="big">${icon}</div><h2>${title}</h2>
+    ${r && r.house ? `<div class="house">${esc(r.house)}</div><div class="name">${esc(r.name)}</div>
+      <div class="people">ผู้เข้าร่วม ${esc(r.people)} ท่าน</div>
+      <div class="meta">รหัส ${esc(r.ref)}${r.inAt ? ` · เข้างานเวลา ${esc(r.inAt)}` : ''}</div>` : ''}
+    ${extra}</div>`;
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+const loading = txt => $('result').innerHTML = `<div class="result r-info"><div class="spin dark" style="margin:10px auto"></div><h2>${txt}</h2></div>`;
+const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+function badPin() {
+  setPin(''); $('staff').hidden = true; $('logout').hidden = true; $('pinPanel').hidden = false;
+  $('pinErr').textContent = 'รหัสเจ้าหน้าที่ไม่ถูกต้อง กรุณากรอกใหม่';
+}
+
+async function checkin(token) {
+  loading('กำลังบันทึกการเข้างาน…');
+  try {
+    const r = await apiPost({ action: 'checkin', t: token, pin: getPin(), ua: navigator.userAgent.slice(0, 150) });
+    if (r.badPin) { pendingToken = token; return badPin(); }
+    if (r.notFound) { buzz([100, 80, 100, 80, 100]); return card('r-bad', '✕', 'ไม่พบข้อมูลตั๋วนี้', null, '<div class="meta">ลองค้นหาด้วยบ้านเลขที่ด้านล่าง</div>'); }
+    if (!r.ok) throw new Error(r.error);
+    showStats(r.stats);
+    if (r.already) { buzz([200, 100, 200]); card('r-dup', '!', 'ตั๋วนี้เข้างานไปแล้ว', r); }
+    else { buzz(250); card('r-ok', '✓', 'เข้างานสำเร็จ', r); }
+  } catch (e) {
+    card('r-bad', '✕', 'เชื่อมต่อไม่สำเร็จ', null, `<button class="btn btn-primary" onclick="checkin('${esc(token)}')">ลองอีกครั้ง</button>`);
+  }
+}
+
+/* ---------- PIN ---------- */
+$('pinBtn').onclick = () => {
+  const v = $('pin').value.trim();
+  if (!v) { $('pinErr').textContent = 'กรุณากรอกรหัสเจ้าหน้าที่'; return; }
+  setPin(v); $('pin').value = ''; $('pinErr').textContent = ''; enterStaff();
+};
+$('pin').addEventListener('keydown', e => { if (e.key === 'Enter') $('pinBtn').click(); });
+$('logout').onclick = () => { setPin(''); location.reload(); };
+
+function enterStaff() {
+  $('pinPanel').hidden = true; $('staff').hidden = false; $('logout').hidden = false;
+  if (pendingToken) { const t = pendingToken; pendingToken = null; checkin(t); }
+  else { $('result').innerHTML = ''; apiGet({ action: 'stats' }).then(showStats).catch(() => {}); }
+}
+
+/* ---------- Search by house ---------- */
+$('findBtn').onclick = async () => {
+  const h = $('house').value.replace(/\s+/g, '');
+  $('houseErr').textContent = '';
+  if (!/^\d{1,4}(\/\d{1,4})?$/.test(h)) { $('houseErr').textContent = 'กรุณากรอกบ้านเลขที่ เช่น 112/180'; return; }
+  const b = $('findBtn'); b.disabled = true; b.innerHTML = '<span class="spin dark"></span> กำลังค้นหา…';
+  try {
+    const r = await apiGet({ action: 'findHouse', house: h, pin: getPin() });
+    if (r.badPin) return badPin();
+    if (!r.ok) { card('r-bad', '✕', `ไม่พบบ้านเลขที่ ${esc(h)} ในรายชื่อลงทะเบียน`, null,
+      '<div class="meta">ให้ลูกบ้านลงทะเบียนใหม่ที่หน้าลงทะเบียน แล้วสแกนตั๋ว</div><a class="btn btn-primary" href="./" target="_blank" rel="noopener" style="text-decoration:none">เปิดหน้าลงทะเบียน</a>'); return; }
+    if (r.status === 'เข้างานแล้ว') { card('r-dup', '!', 'บ้านนี้เข้างานไปแล้ว', r); return; }
+    card('r-info', '?', 'ตรวจสอบชื่อ แล้วกดยืนยัน', r,
+      `<button class="btn btn-green" id="confirmIn" type="button">ยืนยันเข้างาน</button>`);
+    $('confirmIn').onclick = () => { $('house').value = ''; checkin(r.token); };
+  } catch (e) { $('houseErr').textContent = 'เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่'; }
+  finally { b.disabled = false; b.textContent = 'ค้นหา'; }
+};
+$('house').addEventListener('keydown', e => { if (e.key === 'Enter') $('findBtn').click(); });
+
+/* ---------- QR scanner (BarcodeDetector → fallback jsQR) ---------- */
+let stream = null, running = false, detector = null, lastCode = '', lastAt = 0;
+const work = document.createElement('canvas'), wctx = work.getContext('2d', { willReadFrequently: true });
+
+function loadJsQR() {
+  return window.jsQR ? Promise.resolve() : new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+function tokenFrom(text) {
+  try { return new URL(text).searchParams.get('t') || null; } catch (e) { return /^[a-z0-9-]{6,}$/i.test(text) ? text : null; }
+}
+async function openScanner() {
+  try {
+    if ('BarcodeDetector' in window) {
+      try { const f = await BarcodeDetector.getSupportedFormats(); if (f.includes('qr_code')) detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {}
+    }
+    if (!detector) await loadJsQR();
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
+    const v = $('video'); v.srcObject = stream; await v.play();
+    $('scan').hidden = false; running = true; tick();
+  } catch (e) {
+    closeScanner();
+    card('r-bad', '✕', 'เปิดกล้องไม่ได้', null, '<div class="meta">กรุณาอนุญาตให้ใช้กล้อง หรือใช้แอปกล้องของโทรศัพท์สแกน QR แทน</div>');
+  }
+}
+function closeScanner() {
+  running = false; $('scan').hidden = true;
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+async function tick() {
+  if (!running) return;
+  const v = $('video');
+  if (v.readyState >= 2) {
+    let text = null;
+    try {
+      if (detector) { const codes = await detector.detect(v); if (codes.length) text = codes[0].rawValue; }
+      else {
+        const w = 480, h = Math.round(w * v.videoHeight / v.videoWidth) || 480;
+        work.width = w; work.height = h; wctx.drawImage(v, 0, 0, w, h);
+        const img = wctx.getImageData(0, 0, w, h); const q = jsQR(img.data, w, h, { inversionAttempts: 'dontInvert' });
+        if (q) text = q.data;
+      }
+    } catch (e) {}
+    if (text && !(text === lastCode && Date.now() - lastAt < 4000)) {
+      lastCode = text; lastAt = Date.now();
+      const t = tokenFrom(text);
+      closeScanner();
+      if (t) checkin(t); else card('r-bad', '✕', 'QR Code นี้ไม่ใช่ตั๋วเข้างาน', null);
+      return;
+    }
+  }
+  setTimeout(() => requestAnimationFrame(tick), 120);
+}
+$('scanBtn').onclick = openScanner;
+$('closeScan').onclick = closeScanner;
+
+/* ---------- Start ---------- */
+if (getPin()) enterStaff(); else $('pinPanel').hidden = false;
+if (!API_URL) console.warn('โหมดทดลอง: ยังไม่ได้ใส่ API_URL ใน config.js');
+</script>
+</body>
+</html>
