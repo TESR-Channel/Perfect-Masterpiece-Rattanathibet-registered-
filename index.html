@@ -117,12 +117,11 @@ body.lock{overflow:hidden}
 #step1{margin-top:22px}
 .field.err .sigbox{border-color:var(--red);background:var(--red-soft)}
 .sep{border:0;border-top:2px dashed var(--line);margin:8px 0 22px}
-.hrow{display:flex;gap:10px}
-.hrow input{flex:1;min-width:0}
-.slash{flex:0 0 64px;min-height:58px;border-radius:12px;border:2px solid var(--navy);background:var(--gold-soft);color:var(--navy);
-  font-family:'Kanit',sans-serif;font-size:1.9rem;font-weight:600;cursor:pointer}
-.slash:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
-.ex2{color:var(--muted);font-size:.95rem;margin-top:6px}
+.hrow{display:flex;align-items:center;gap:10px}
+.hrow input{text-align:center;font-size:1.35rem}
+#hMain{flex:0 0 110px}
+#hSub{flex:1;min-width:0}
+.sl{font-family:'Kanit',sans-serif;font-size:2rem;color:var(--navy);font-weight:600}
 .field .note{font-weight:600;margin-top:6px;font-size:1rem;color:#6B4E00}
 
 .mine{display:grid;gap:12px;background:var(--green-soft);border:2px solid #A7DDB9;border-radius:16px;padding:16px;margin-top:22px}
@@ -191,12 +190,12 @@ body.lock{overflow:hidden}
     <p class="hint">กรอกข้อมูล เซ็นชื่อ แล้วกด “ยืนยันการลงทะเบียน”</p>
 
     <div class="field" id="f-house">
-      <label for="house">บ้านเลขที่ <span class="ex">เช่น 112/180</span></label>
+      <label for="hSub">บ้านเลขที่</label>
       <div class="hrow">
-        <input id="house" inputmode="decimal" autocomplete="off" placeholder="112/…" required>
-        <button type="button" class="slash" id="slashBtn" aria-label="ใส่เครื่องหมายทับ">/</button>
+        <input id="hMain" inputmode="numeric" autocomplete="off" value="112" maxlength="4" aria-label="บ้านเลขที่ ตัวหน้า">
+        <span class="sl" aria-hidden="true">/</span>
+        <input id="hSub" inputmode="numeric" autocomplete="off" placeholder="เช่น 180" maxlength="4" aria-label="บ้านเลขที่ ตัวหลัง">
       </div>
-      <div class="ex2">ใส่ “/” ได้โดยกดปุ่ม <b>/</b> ด้านขวา หรือกดปุ่ม <b>.</b> บนแป้นตัวเลข</div>
       <div class="msg">กรุณากรอกบ้านเลขที่ให้ถูกต้อง เช่น 112/180</div>
       <div class="note" id="houseNote" hidden></div>
     </div>
@@ -282,7 +281,8 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/\D/g, '');
 const fmtPhone = s => { const d = digits(s); return d.length === 10 ? `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}` : d; };
-const normHouse = s => String(s).replace(/\s+/g, '').replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/');
+const normHouse = s => String(s).replace(/\s+/g, '');
+const getHouse = () => { const a = digits($('hMain').value), b = digits($('hSub').value); return b ? `${a}/${b}` : a; };
 
 /* Contacts */
 $('contactList').innerHTML = CONTACTS.map(c => `
@@ -312,7 +312,7 @@ const TICKET_KEY = 'pm-ticket-2-2569';
 function setErr(id, bad) { $(id).classList.toggle('err', bad); return !bad; }
 function readForm() {
   return {
-    house: normHouse($('house').value),
+    house: getHouse(),
     name: $('fullname').value.trim().replace(/\s+/g, ' '),
     phone: digits($('phone').value),
     people,
@@ -328,31 +328,18 @@ function validate(d) {
   if (first) { first.focus(); first.scrollIntoView({ block: 'center' }); }
   return ok.every(Boolean);
 }
-['house','fullname','phone'].forEach(id => $(id).addEventListener('input', () => $(id).closest('.field').classList.remove('err')));
+['hMain','hSub','fullname','phone'].forEach(id => $(id).addEventListener('input', () => $(id).closest('.field').classList.remove('err')));
 const alertBox = (id, html, kind = 'err') => { $(id).innerHTML = html ? `<div class="alert alert-${kind}" role="alert">${html}</div>` : ''; };
 
 /* ตรวจบ้านซ้ำทันทีที่กรอกบ้านเลขที่เสร็จ (ชั้นที่ 1) */
 let houseExists = false;
-/* แป้นตัวเลขมือถือไม่มี “/” — แปลง . , - เป็น / อัตโนมัติ และมีปุ่ม / ให้กด */
-$('house').addEventListener('input', e => {
-  const el = e.target, pos = el.selectionStart, v = el.value.replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/');
-  if (v !== el.value) { el.value = v; try { el.setSelectionRange(Math.min(pos, v.length), Math.min(pos, v.length)); } catch (err) {} }
-});
-$('slashBtn').addEventListener('pointerdown', e => e.preventDefault()); // ไม่ให้คีย์บอร์ดปิด
-$('slashBtn').onclick = () => {
-  const el = $('house'), v = el.value, a = el.selectionStart ?? v.length, b = el.selectionEnd ?? v.length;
-  if (v.includes('/')) { el.focus(); return; }
-  el.value = v.slice(0, a) + '/' + v.slice(b);
-  el.focus(); try { el.setSelectionRange(a + 1, a + 1); } catch (err) {}
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-};
-$('house').addEventListener('input', () => { $('houseNote').hidden = true; houseExists = false; });
-$('house').addEventListener('blur', async () => {
-  const h = normHouse($('house').value);
+['hMain','hSub'].forEach(id => $(id).addEventListener('input', () => { $('houseNote').hidden = true; houseExists = false; }));
+$('hSub').addEventListener('blur', async () => {
+  const h = getHouse();
   if (!API_URL || !/^\d{1,4}(\/\d{1,4})?$/.test(h)) return;
   try {
     const r = await fetch(`${API_URL}?action=check&house=${encodeURIComponent(h)}`).then(r => r.json());
-    if (r.exists && normHouse($('house').value) === h) {
+    if (r.exists && getHouse() === h) {
       $('houseNote').textContent = `⚠️ บ้านเลขที่ ${h} ลงทะเบียนไว้แล้ว — ถ้าต้องการดูตั๋วเดิม กรอกเบอร์โทรที่เคยใช้แล้วกดยืนยัน`;
       $('houseNote').hidden = false; houseExists = true;
     }
@@ -547,9 +534,9 @@ renderMine();
 
 /* Register another house */
 $('again').onclick = () => {
-  ['house','fullname','phone'].forEach(id => $(id).value = '');
+  ['hSub','fullname','phone'].forEach(id => $(id).value = '');
   people = 1; renderCount(); clearSig(); alertBox('alert2', ''); $('houseNote').hidden = true; houseExists = false;
-  closeModal(); $('step1').scrollIntoView({ block: 'start' }); $('house').focus();
+  closeModal(); $('step1').scrollIntoView({ block: 'start' }); $('hSub').focus();
 };
 </script>
 </body>
