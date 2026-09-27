@@ -143,10 +143,51 @@ body.lock{overflow:hidden}
 
 .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* ===== Responsive: มือถือ → แท็บเล็ต → โน้ตบุ๊ก/เดสก์ท็อป ===== */
+/* มือถือ: คอลัมน์เดียว เรียง โปสเตอร์ → จดหมาย → ฟอร์ม → ผู้ประสานงาน */
+.wrap{display:flex;flex-direction:column}
+.col{display:contents}
+.poster{order:1}.letter{order:2}.mine{order:3}#step1{order:4}.contacts{order:5}.foot{order:6}
+@media (max-width:360px){body{font-size:18px}.panel,.letter{padding:18px 14px}#hMain{flex-basis:92px}}
+
+/* แท็บเล็ต */
+@media (min-width:768px){
+  .wrap{max-width:760px;padding:0 28px 48px}
+  .letter,.panel{padding:28px 30px}
+  .sigbox canvas{height:280px}
+  #contactList{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #contactList .contact{margin-bottom:0}
+}
+
+/* โน้ตบุ๊ก / เดสก์ท็อป: 2 คอลัมน์ ซ้ายรายละเอียด ขวาฟอร์ม */
+@media (min-width:1024px){
+  .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:36px;align-items:start;max-width:1240px;padding:24px 32px 56px}
+  .col{display:block}
+  .poster{margin:0;border-radius:20px}
+  .letter{margin-top:20px}
+  .mine{margin-top:0;margin-bottom:20px}
+  #step1{margin-top:0}
+  .sigbox canvas{height:260px}
+}
+@media (min-width:1024px) and (min-height:860px){.colR{position:sticky;top:20px}}
+@media (min-width:1440px){.wrap{max-width:1360px}}
+
+/* Popup ตั๋ว: จอกว้างแนวนอน แสดงรูปตั๋วซ้าย ปุ่มขวา */
+@media (min-width:860px) and (min-height:560px){
+  .sheet{max-width:860px;display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);grid-template-rows:auto auto 1fr;
+    column-gap:32px;text-align:left;padding:28px}
+  .sheet img.card{grid-column:1;grid-row:1 / 4;margin:0;max-height:calc(100dvh - 90px);width:auto;max-width:100%;justify-self:center}
+  .sheet h2{grid-column:2;padding:0 50px 0 0;margin-top:8px}
+  .sheet > p{grid-column:2;margin-top:10px!important}
+  .sheet .btn-row{grid-column:2;align-self:end}
+  .sheet .tip{text-align:left}
+}
 </style>
 </head>
 <body>
 <main class="wrap">
+ <div class="col colL">
 
   <figure class="poster" style="margin-bottom:0">
     <img src="IMG_2133.jpeg" alt="ลงทะเบียนเข้าร่วมการประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569 หมู่บ้านป้อม 8 และป้อม 6" width="1400" height="788">
@@ -179,6 +220,14 @@ body.lock{overflow:hidden}
     </div>
   </section>
 
+  <!-- CONTACTS -->
+  <section class="contacts" aria-labelledby="hc">
+    <h2 id="hc">📞 สอบถาม / ประสานงานคณะตัวแทน</h2>
+    <div id="contactList"></div>
+  </section>
+ </div>
+
+ <div class="col colR">
   <div class="mine" id="mine" hidden>
     <div><b>ท่านลงทะเบียนแล้ว</b><span id="mineTxt"></span></div>
     <button type="button" class="btn btn-gold" id="showMine">แสดงตั๋วเข้างาน</button>
@@ -228,7 +277,7 @@ body.lock{overflow:hidden}
       <div class="sigbox" id="sigbox">
         <canvas id="sig" aria-label="กรอบลงลายมือชื่อ"></canvas>
         <div class="line"></div>
-        <div class="ph">✍️ ใช้นิ้วเซ็นชื่อตรงนี้</div>
+        <div class="ph">✍️ เซ็นชื่อในกรอบนี้</div>
       </div>
     </div>
     <div class="sigtools"><button type="button" id="clearSig">ล้างลายเซ็น เซ็นใหม่</button></div>
@@ -239,13 +288,8 @@ body.lock{overflow:hidden}
     </div>
   </section>
 
-  <!-- CONTACTS -->
-  <section class="contacts" aria-labelledby="hc">
-    <h2 id="hc">📞 สอบถาม / ประสานงานคณะตัวแทน</h2>
-    <div id="contactList"></div>
-  </section>
-
   <p class="foot">การแจ้งข้อมูลล่วงหน้าของท่าน จะช่วยให้ฝ่ายประสานงานจัดเตรียมสถานที่ได้อย่างเรียบร้อย<br>ขอขอบพระคุณในความร่วมมือของทุกท่านครับ</p>
+ </div>
 </main>
 
 <!-- POPUP: ตั๋วเข้างาน -->
