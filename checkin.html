@@ -106,8 +106,11 @@ input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 4px rgba(242,
 
     <section class="panel" style="margin-top:14px">
       <h2>ลูกบ้านไม่มีตั๋ว? ค้นหาด้วยบ้านเลขที่</h2>
-      <input id="house" inputmode="decimal" placeholder="เช่น 112/180" autocomplete="off">
-      <p style="margin:6px 0 0;color:var(--muted);font-size:.95rem">กดปุ่ม <b>.</b> บนแป้นตัวเลขแทน “/” ได้</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input id="hMain" inputmode="numeric" value="112" maxlength="4" autocomplete="off" aria-label="บ้านเลขที่ ตัวหน้า" style="flex:0 0 110px">
+        <span style="font-family:'Kanit',sans-serif;font-size:2rem;color:var(--navy);font-weight:600" aria-hidden="true">/</span>
+        <input id="house" inputmode="numeric" maxlength="4" placeholder="เช่น 180" autocomplete="off" aria-label="บ้านเลขที่ ตัวหลัง" style="flex:1;min-width:0">
+      </div>
       <div class="err" id="houseErr"></div>
       <button class="btn btn-ghost" id="findBtn" type="button">ค้นหา</button>
     </section>
@@ -216,7 +219,7 @@ function enterStaff() {
 
 /* ---------- Search by house ---------- */
 $('findBtn').onclick = async () => {
-  const h = $('house').value.replace(/\s+/g, '').replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/');
+  const m = $('hMain').value.replace(/\D/g, ''), n = $('house').value.replace(/\D/g, ''), h = n ? `${m}/${n}` : m;
   $('houseErr').textContent = '';
   if (!/^\d{1,4}(\/\d{1,4})?$/.test(h)) { $('houseErr').textContent = 'กรุณากรอกบ้านเลขที่ เช่น 112/180'; return; }
   const b = $('findBtn'); b.disabled = true; b.innerHTML = '<span class="spin dark"></span> กำลังค้นหา…';
@@ -233,7 +236,6 @@ $('findBtn').onclick = async () => {
   finally { b.disabled = false; b.textContent = 'ค้นหา'; }
 };
 $('house').addEventListener('keydown', e => { if (e.key === 'Enter') $('findBtn').click(); });
-$('house').addEventListener('input', e => { const v = e.target.value.replace(/[.,\-\\|]/g, '/').replace(/\/+/g, '/'); if (v !== e.target.value) e.target.value = v; });
 
 /* ---------- QR scanner (BarcodeDetector → fallback jsQR) ---------- */
 let stream = null, running = false, detector = null, lastCode = '', lastAt = 0;
