@@ -3,7 +3,7 @@
  * การประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569 — ป้อม 8 และป้อม 6
  *
  * ติดตั้ง: เปิด Google Sheets ไฟล์ปลายทาง → ส่วนขยาย → Apps Script → วางโค้ดนี้ทั้งหมด
- * (ต้องสร้างจากในไฟล์ Sheets เท่านั้น ไม่งั้นข้อมูลจะไปลงผิดไฟล์)
+ * (ระบุไฟล์ปลายทางด้วย SHEET_ID ด้านล่าง)
  *
  * แท็บที่ระบบสร้างให้อัตโนมัติ:
  *   ลงทะเบียน — รายชื่อผู้ลงทะเบียนล่วงหน้า + สถานะเข้างาน
@@ -11,10 +11,12 @@
  *   สรุป      — ยอดรวมแบบเรียลไทม์
  */
 
-const STAFF_PIN = '2569';   // ← รหัสเจ้าหน้าที่สำหรับหน้าเช็กอิน (เปลี่ยนก่อนใช้งานจริง)
+const STAFF_PIN = '112296';   // ← รหัสเจ้าหน้าที่สำหรับหน้าเช็กอิน (เปลี่ยนก่อนใช้งานจริง)
 const FOLDER_ID = '';       // โฟลเดอร์ Drive เก็บไฟล์ลายเซ็น (เว้นว่างได้ — รูปลายเซ็นจะอยู่ในชีตอยู่แล้ว)
 const REF_PREFIX = 'M2-';
 const TZ = 'Asia/Bangkok';
+// ไฟล์ Google Sheets ปลายทาง (ข้อมูลคนลงทะเบียนประชุม 03-10-2026)
+const SHEET_ID = '1pL0mAus27hcZaWDFIhBaRtILEx0xol8fqCs772wn2h0';
 
 const SH_REG = 'ลงทะเบียน', SH_LOG = 'เข้างาน', SH_SUM = 'สรุป';
 const ST_WAIT = 'ยังไม่เข้างาน', ST_IN = 'เข้างานแล้ว';
@@ -35,11 +37,20 @@ function styleHeader_(sh, headers) {
   sh.setRowHeight(1, 36);
 }
 
+/* เปิดไฟล์ด้วย ID + หาแท็บด้วย getSheets() (เลี่ยงบั๊ก "Sheet 0 not found" ของ getSheetByName) */
+const ss_ = () => SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+const tab_ = (ss, name) => ss.getSheets().filter(s => s.getName() === name)[0] || null;
+function newTab_(ss, name, pos) {
+  const sh = ss.insertSheet(name);
+  try { ss.setActiveSheet(sh); ss.moveActiveSheet(pos); } catch (e) {}
+  return sh;
+}
+
 function setup_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let reg = ss.getSheetByName(SH_REG);
+  const ss = ss_();
+  let reg = tab_(ss, SH_REG);
   if (!reg) {
-    reg = ss.insertSheet(SH_REG, 0);
+    reg = newTab_(ss, SH_REG, 1);
     styleHeader_(reg, REG_HEADERS);
     reg.getRange('D:D').setNumberFormat('@');
     reg.getRange('F:F').setNumberFormat('@');
@@ -50,16 +61,16 @@ function setup_() {
       .setFontColor('#9A6700').setRanges([reg.getRange('I2:I')]).build();
     reg.setConditionalFormatRules([rule1, rule2]);
   }
-  let log = ss.getSheetByName(SH_LOG);
+  let log = tab_(ss, SH_LOG);
   if (!log) {
-    log = ss.insertSheet(SH_LOG, 1);
+    log = newTab_(ss, SH_LOG, 2);
     styleHeader_(log, LOG_HEADERS);
     log.getRange('C:C').setNumberFormat('@');
     [150, 110, 100, 220, 110, 140, 200].forEach((w, i) => log.setColumnWidth(i + 1, w));
   }
-  let sum = ss.getSheetByName(SH_SUM);
+  let sum = tab_(ss, SH_SUM);
   if (!sum) {
-    sum = ss.insertSheet(SH_SUM, 2);
+    sum = newTab_(ss, SH_SUM, 3);
     const R = `'${SH_REG}'`;
     sum.getRange('A1').setValue('สรุปการประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569').setFontSize(16).setFontWeight('bold').setFontColor('#0E2A5E');
     sum.getRange('A3:B8').setValues([
@@ -75,8 +86,9 @@ function setup_() {
     sum.getRange('B5:B6').setFontColor('#15803D');
     sum.setColumnWidth(1, 260); sum.setColumnWidth(2, 140);
   }
-  const def = ss.getSheetByName('Sheet1') || ss.getSheetByName('ชีต1');
-  if (def && def.getLastRow() === 0 && ss.getSheets().length > 3) ss.deleteSheet(def);
+  const def = tab_(ss, 'Sheet1') || tab_(ss, 'ชีต1') || tab_(ss, 'แผ่นงาน1');
+  if (def && def.getLastRow() === 0 && ss.getSheets().length > 3) { try { ss.deleteSheet(def); } catch (e) {} }
+  try { ss.setActiveSheet(reg); } catch (e) {}
   return { reg, log, sum };
 }
 
@@ -113,7 +125,7 @@ function stats_(reg) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   const { reg } = setup_();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = ss_();
 
   if (p.debug) return json_({ spreadsheet: ss.getName(), url: ss.getUrl(), rows: reg.getLastRow() - 1 });
 
@@ -215,7 +227,8 @@ function checkin_({ reg, log }, d) {
 
 /** รันครั้งเดียวด้วยมือ: สร้างแท็บทั้งหมด + ขอสิทธิ์ Sheets/Drive */
 function authorize() {
-  setup_();
+  const t = setup_();
+  Logger.log('พร้อมใช้งาน: ' + ss_().getSheets().map(s => s.getName()).join(', '));
   if (FOLDER_ID) DriveApp.getFolderById(FOLDER_ID).getName();
   else DriveApp.getRootFolder().getName();
 }
