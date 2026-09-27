@@ -55,15 +55,6 @@ h1,h2,h3{font-family:'Kanit','Sarabun',Tahoma,sans-serif;font-weight:600;line-he
 .agenda li::before{content:counter(a);flex:0 0 32px;height:32px;border-radius:50%;background:var(--gold);color:var(--navy-deep);
   font-family:'Kanit',sans-serif;font-weight:600;display:grid;place-items:center;margin-top:2px}
 
-/* Steps */
-.steps{display:flex;gap:6px;margin:28px 0 14px}
-.steps div{flex:1;text-align:center;font-size:.9rem;color:var(--muted);font-weight:600}
-.steps div::before{content:attr(data-n);display:grid;place-items:center;width:40px;height:40px;margin:0 auto 4px;border-radius:50%;
-  background:var(--white);border:3px solid var(--line);font-family:'Kanit',sans-serif;font-size:1.1rem;color:var(--muted)}
-.steps div.on{color:var(--navy)}
-.steps div.on::before{background:var(--navy);border-color:var(--navy);color:#fff}
-.steps div.done::before{content:'✓';background:var(--green);border-color:var(--green);color:#fff}
-
 /* Panels */
 .panel{background:var(--white);border-radius:18px;padding:22px 20px;box-shadow:0 2px 0 var(--line)}
 .panel h2{font-size:1.3rem;color:var(--navy);margin-bottom:4px}
@@ -102,12 +93,6 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 .alert-err{background:var(--red-soft);color:var(--red);border:2px solid #F5C2BD}
 .alert-warn{background:var(--gold-soft);color:#6B4E00;border:2px solid #F4D77A}
 
-/* Summary */
-.summary{background:var(--sky);border-radius:14px;padding:14px 16px;margin-bottom:18px}
-.summary dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
-.summary dt{color:var(--muted)}
-.summary dd{margin:0;font-weight:700;color:var(--navy);word-break:break-word}
-
 /* Signature */
 .sigbox{position:relative;border:3px dashed var(--navy);border-radius:14px;background:#FFFEF8;touch-action:none}
 .sigbox canvas{display:block;width:100%;height:240px;border-radius:12px;cursor:crosshair}
@@ -117,18 +102,22 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 .sigtools{display:flex;justify-content:flex-end;margin:8px 0 16px}
 .sigtools button{background:none;border:0;color:var(--red);font:inherit;font-weight:700;font-size:1.05rem;padding:8px 4px;cursor:pointer;text-decoration:underline}
 
-/* Success */
-.success{text-align:center}
-.success .tick{width:96px;height:96px;border-radius:50%;background:var(--green);margin:4px auto 14px;display:grid;place-items:center;
-  animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
-.success .tick svg{width:54px;height:54px;stroke:#fff;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
-@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.success .tick{animation:none}}
-.success h2{color:var(--green);font-size:1.5rem}
-.ref{display:inline-block;background:var(--gold-soft);border:2px solid var(--gold);border-radius:12px;padding:8px 18px;margin:12px 0;
-  font-family:'Kanit',sans-serif;font-size:1.3rem;color:var(--navy-deep)}
-.success .summary{text-align:left}
-.success img.card{border-radius:16px;margin:0 auto 18px;width:100%;max-width:420px;height:auto;box-shadow:0 6px 20px rgba(14,42,94,.18)}
+/* Popup ticket */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,31,71,.72);display:flex;align-items:center;justify-content:center;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.sheet{background:var(--white);border-radius:22px;width:100%;max-width:460px;max-height:100%;overflow-y:auto;padding:22px 18px 18px;
+  text-align:center;position:relative;animation:up .35s cubic-bezier(.2,1.1,.4,1)}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.sheet h2{color:var(--green);font-size:1.4rem;margin-top:4px;padding:0 46px}
+.sheet .x{position:absolute;top:10px;right:10px;width:48px;height:48px;border-radius:50%;border:0;background:var(--sky);color:var(--navy);
+  font-size:1.6rem;line-height:1;cursor:pointer}
+.sheet img.card{border-radius:14px;margin:14px auto;width:100%;height:auto;box-shadow:0 4px 16px rgba(14,42,94,.18)}
+body.lock{overflow:hidden}
+#step1{margin-top:22px}
+.field.err .sigbox{border-color:var(--red);background:var(--red-soft)}
+.sep{border:0;border-top:2px dashed var(--line);margin:8px 0 22px}
+.field .note{font-weight:600;margin-top:6px;font-size:1rem;color:#6B4E00}
 
 .mine{display:grid;gap:12px;background:var(--green-soft);border:2px solid #A7DDB9;border-radius:16px;padding:16px;margin-top:22px}
 .mine b{display:block;color:var(--green);font-family:'Kanit',sans-serif;font-size:1.2rem}
@@ -190,22 +179,16 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
     <button type="button" class="btn btn-gold" id="showMine">แสดงตั๋วเข้างาน</button>
   </div>
 
-  <nav class="steps" aria-label="ขั้นตอน">
-    <div id="st1" data-n="1" class="on">กรอกข้อมูล</div>
-    <div id="st2" data-n="2">ลงลายมือชื่อ</div>
-    <div id="st3" data-n="3">รับตั๋วเข้างาน</div>
-  </nav>
-
   <!-- STEP 1 -->
   <section class="panel" id="step1" aria-labelledby="h1">
-    <h2 id="h1">ขั้นที่ 1 · กรอกข้อมูลผู้เข้าร่วม</h2>
-    <p class="hint">กรอกข้อมูลด้านล่าง แล้วกดปุ่ม “ถัดไป”</p>
-    <div id="alert1"></div>
+    <h2 id="h1">ลงทะเบียนเข้าร่วมประชุม</h2>
+    <p class="hint">กรอกข้อมูล เซ็นชื่อ แล้วกด “ยืนยันการลงทะเบียน”</p>
 
     <div class="field" id="f-house">
       <label for="house">บ้านเลขที่ <span class="ex">เช่น 112/180</span></label>
       <input id="house" inputmode="decimal" autocomplete="off" placeholder="112/…" required>
       <div class="msg">กรุณากรอกบ้านเลขที่ให้ถูกต้อง เช่น 112/180</div>
+      <div class="note" id="houseNote" hidden></div>
     </div>
 
     <div class="field" id="f-name">
@@ -229,42 +212,21 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
       </div>
     </div>
 
-    <div class="btn-row">
-      <button type="button" class="btn btn-primary" id="next1">ถัดไป · ลงลายมือชื่อ</button>
-    </div>
-  </section>
+    <hr class="sep">
 
-  <!-- STEP 2 -->
-  <section class="panel" id="step2" hidden aria-labelledby="h2">
-    <h2 id="h2">ขั้นที่ 2 · ตรวจสอบและลงลายมือชื่อ</h2>
-    <p class="hint">ตรวจข้อมูลให้ถูกต้อง แล้วใช้นิ้วเซ็นชื่อในกรอบ</p>
-    <div id="alert2"></div>
-
-    <div class="summary"><dl id="sum2"></dl></div>
-
-    <div class="sigbox" id="sigbox">
-      <canvas id="sig" aria-label="กรอบลงลายมือชื่อ"></canvas>
-      <div class="line"></div>
-      <div class="ph">✍️ ใช้นิ้วเซ็นชื่อตรงนี้</div>
+    <div class="field" id="f-sig" style="margin-bottom:0">
+      <label>ลงลายมือชื่อ</label>
+      <div class="sigbox" id="sigbox">
+        <canvas id="sig" aria-label="กรอบลงลายมือชื่อ"></canvas>
+        <div class="line"></div>
+        <div class="ph">✍️ ใช้นิ้วเซ็นชื่อตรงนี้</div>
+      </div>
     </div>
     <div class="sigtools"><button type="button" id="clearSig">ล้างลายเซ็น เซ็นใหม่</button></div>
 
+    <div id="alert2"></div>
     <div class="btn-row">
       <button type="button" class="btn btn-gold" id="submit">ยืนยันการลงทะเบียน</button>
-      <button type="button" class="btn btn-ghost" id="back2">ย้อนกลับไปแก้ไขข้อมูล</button>
-    </div>
-  </section>
-
-  <!-- STEP 3 -->
-  <section class="panel success" id="step3" hidden aria-labelledby="h3" tabindex="-1">
-    <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-    <h2 id="h3">ลงทะเบียนเรียบร้อยแล้ว</h2>
-    <p style="margin:6px 0 14px">นี่คือ <b>ตั๋วเข้างาน</b> ของท่าน<br>กรุณาบันทึกรูปเก็บไว้ และแสดง QR Code ที่จุดลงทะเบียนในวันประชุม</p>
-    <img class="card" id="cardImg" alt="ตั๋วเข้างาน">
-    <div class="btn-row">
-      <button type="button" class="btn btn-primary" id="saveCard">บันทึกรูปตั๋วเข้างาน</button>
-      <p class="tip">ถ้ากดบันทึกไม่ได้ ให้ <b>กดค้างที่รูปตั๋ว</b> แล้วเลือก “บันทึกรูปภาพ” หรือแคปหน้าจอไว้ก็ได้</p>
-      <button type="button" class="btn btn-ghost" id="again">ลงทะเบียนให้บ้านหลังอื่น</button>
     </div>
   </section>
 
@@ -276,6 +238,21 @@ input:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 
 
   <p class="foot">การแจ้งข้อมูลล่วงหน้าของท่าน จะช่วยให้ฝ่ายประสานงานจัดเตรียมสถานที่ได้อย่างเรียบร้อย<br>ขอขอบพระคุณในความร่วมมือของทุกท่านครับ</p>
 </main>
+
+<!-- POPUP: ตั๋วเข้างาน -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mh">
+  <div class="sheet" tabindex="-1" id="sheet">
+    <button type="button" class="x" id="closeModal" aria-label="ปิด">✕</button>
+    <h2 id="mh">✅ ลงทะเบียนเรียบร้อยแล้ว</h2>
+    <p style="margin:6px 0 0">นี่คือ <b>ตั๋วเข้างาน</b> ของท่าน<br>กรุณาบันทึกเก็บไว้ แล้วแสดง QR Code ในวันประชุม</p>
+    <img class="card" id="cardImg" alt="ตั๋วเข้างาน">
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="saveCard">⬇️ บันทึกตั๋วลงเครื่อง</button>
+      <p class="tip">ถ้ากดบันทึกไม่ได้ ให้ <b>กดค้างที่รูปตั๋ว</b> แล้วเลือก “บันทึกรูปภาพ” หรือแคปหน้าจอไว้</p>
+      <button type="button" class="btn btn-ghost" id="again">ลงทะเบียนให้บ้านหลังอื่น</button>
+    </div>
+  </div>
+</div>
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
@@ -319,14 +296,7 @@ $('phone').addEventListener('input', e => {
   e.target.value = d.length > 6 ? `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}` : d.length > 3 ? `${d.slice(0,3)}-${d.slice(3)}` : d;
 });
 
-/* Steps */
 const TICKET_KEY = 'pm-ticket-2-2569';
-function go(n) {
-  [1,2,3].forEach(i => { $('step'+i).hidden = i !== n;
-    $('st'+i).className = i < n || (n === 3 && i === 3) ? 'done' : i === n ? 'on' : ''; });
-  if (n === 2) setTimeout(sizeCanvas, 30);
-  $('st1').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-}
 
 /* Validation */
 function setErr(id, bad) { $(id).classList.toggle('err', bad); return !bad; }
@@ -345,18 +315,26 @@ function validate(d) {
     setErr('f-phone', !/^0\d{9}$/.test(d.phone)),
   ];
   const first = document.querySelector('.field.err input');
-  if (first) first.focus();
+  if (first) { first.focus(); first.scrollIntoView({ block: 'center' }); }
   return ok.every(Boolean);
 }
 ['house','fullname','phone'].forEach(id => $(id).addEventListener('input', () => $(id).closest('.field').classList.remove('err')));
-
-function summaryHTML(d) {
-  return `<dt>บ้านเลขที่</dt><dd>${esc(d.house)}</dd>
-    <dt>ชื่อ และนามสกุล</dt><dd>${esc(d.name)}</dd>
-    <dt>เบอร์โทรศัพท์</dt><dd>${esc(fmtPhone(d.phone))}</dd>
-    <dt>ผู้เข้าร่วม</dt><dd>${d.people} ท่าน</dd>`;
-}
 const alertBox = (id, html, kind = 'err') => { $(id).innerHTML = html ? `<div class="alert alert-${kind}" role="alert">${html}</div>` : ''; };
+
+/* ตรวจบ้านซ้ำทันทีที่กรอกบ้านเลขที่เสร็จ (ชั้นที่ 1) */
+let houseExists = false;
+$('house').addEventListener('input', () => { $('houseNote').hidden = true; houseExists = false; });
+$('house').addEventListener('blur', async () => {
+  const h = normHouse($('house').value);
+  if (!API_URL || !/^\d{1,4}(\/\d{1,4})?$/.test(h)) return;
+  try {
+    const r = await fetch(`${API_URL}?action=check&house=${encodeURIComponent(h)}`).then(r => r.json());
+    if (r.exists && normHouse($('house').value) === h) {
+      $('houseNote').textContent = `⚠️ บ้านเลขที่ ${h} ลงทะเบียนไว้แล้ว — ถ้าต้องการดูตั๋วเดิม กรอกเบอร์โทรที่เคยใช้แล้วกดยืนยัน`;
+      $('houseNote').hidden = false; houseExists = true;
+    }
+  } catch (e) {}
+});
 
 /* Duplicate → offer to show existing ticket (house + phone must match) */
 function dupAlert(id, d) {
@@ -373,24 +351,6 @@ function dupAlert(id, d) {
   };
 }
 
-/* Step 1 → 2 (duplicate pre-check) */
-let form = null;
-$('next1').onclick = async () => {
-  alertBox('alert1', '');
-  const d = readForm();
-  if (!validate(d)) return;
-  const btn = $('next1'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span> กำลังตรวจสอบ…';
-  try {
-    if (API_URL) {
-      const r = await fetch(`${API_URL}?action=check&house=${encodeURIComponent(d.house)}`).then(r => r.json());
-      if (r.exists) { dupAlert('alert1', d); return; }
-    }
-  } catch (e) { /* เน็ตช้า — ไปต่อได้ เซิร์ฟเวอร์ตรวจซ้ำอีกชั้น */ }
-  finally { btn.disabled = false; btn.textContent = 'ถัดไป · ลงลายมือชื่อ'; }
-  form = d; $('sum2').innerHTML = summaryHTML(d); go(2);
-};
-$('back2').onclick = () => go(1);
-
 /* ===== Signature pad ===== */
 const cv = $('sig'), ctx = cv.getContext('2d');
 let drawing = false, inkLen = 0, last = null, strokes = [];
@@ -402,13 +362,14 @@ function sizeCanvas() {
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0A1F47'; ctx.lineWidth = 3.2;
   strokes.forEach(s => { ctx.beginPath(); s.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke(); });
 }
-window.addEventListener('resize', () => { if (!$('step2').hidden) sizeCanvas(); });
+window.addEventListener('resize', sizeCanvas);
+requestAnimationFrame(sizeCanvas);
 const pt = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); cv.setPointerCapture(e.pointerId);
   drawing = true; last = pt(e); strokes.push([last]);
   ctx.beginPath(); ctx.arc(last.x, last.y, 1.4, 0, Math.PI * 2); ctx.fillStyle = '#0A1F47'; ctx.fill();
-  $('sigbox').classList.add('has'); alertBox('alert2', '');
+  $('sigbox').classList.add('has'); $('f-sig').classList.remove('err'); alertBox('alert2', '');
 });
 cv.addEventListener('pointermove', e => {
   if (!drawing) return; e.preventDefault();
@@ -437,7 +398,10 @@ function signaturePNG() {
 /* ===== Submit ===== */
 $('submit').onclick = async () => {
   alertBox('alert2', '');
-  if (inkLen < 40) { alertBox('alert2', 'กรุณาลงลายมือชื่อในกรอบก่อนกดยืนยัน'); return; }
+  const form = readForm();
+  if (!validate(form)) { alertBox('alert2', 'กรุณากรอกข้อมูลในช่องสีแดงให้ครบ'); return; }
+  if (houseExists) { dupAlert('alert2', form); return; }
+  if (inkLen < 40) { setErr('f-sig', true); $('sigbox').scrollIntoView({ block: 'center' }); alertBox('alert2', 'กรุณาลงลายมือชื่อในกรอบก่อนกดยืนยัน'); return; }
   const btn = $('submit'); btn.disabled = true; btn.innerHTML = '<span class="spin" style="border-top-color:#0A1F47"></span> กำลังบันทึก…';
   const payload = { ...form, signature: signaturePNG(), ua: navigator.userAgent.slice(0, 150) };
   try {
@@ -468,7 +432,7 @@ async function showTicket(t) {
   $('cardImg').src = canvas.toDataURL('image/png');
   ticketBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
   ticketName = `ตั๋วเข้างาน-${t.house.replace('/', '-')}.png`;
-  go(3); renderMine(); $('step3').focus({ preventScroll: true });
+  openModal(); renderMine();
 }
 
 $('saveCard').onclick = async () => {
@@ -542,11 +506,17 @@ async function buildTicket(t) {
   return c;
 }
 
+/* Popup */
+function openModal() { $('modal').hidden = false; document.body.classList.add('lock'); $('sheet').scrollTop = 0; $('sheet').focus(); }
+function closeModal() { $('modal').hidden = true; document.body.classList.remove('lock'); }
+$('closeModal').onclick = closeModal;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden) closeModal(); });
+
 /* Saved ticket on this device */
 function getMine() { try { return JSON.parse(localStorage.getItem(TICKET_KEY) || 'null'); } catch (e) { return null; } }
 function renderMine() {
   const m = getMine();
-  $('mine').hidden = !m || !$('step3').hidden;
+  $('mine').hidden = !m;
   if (m) $('mineTxt').textContent = `บ้านเลขที่ ${m.house} · ${m.name}`;
 }
 $('showMine').onclick = () => { const m = getMine(); if (m) showTicket(m); };
@@ -555,8 +525,8 @@ renderMine();
 /* Register another house */
 $('again').onclick = () => {
   ['house','fullname','phone'].forEach(id => $(id).value = '');
-  people = 1; renderCount(); clearSig(); form = null; alertBox('alert1', ''); alertBox('alert2', '');
-  go(1); renderMine(); $('house').focus();
+  people = 1; renderCount(); clearSig(); alertBox('alert2', ''); $('houseNote').hidden = true; houseExists = false;
+  closeModal(); $('step1').scrollIntoView({ block: 'start' }); $('house').focus();
 };
 </script>
 </body>
