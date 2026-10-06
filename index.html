@@ -315,6 +315,7 @@ body.lock{overflow:hidden}
 </div>
 
 <script src="config.js"></script>
+<script src="zones.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
 /* ===== ตั้งค่า (API_URL อยู่ใน config.js) ===== */
@@ -475,7 +476,7 @@ $('submit').onclick = async () => {
     }
     if (res.duplicate) { dupAlert('alert2', form); return; }
     if (!res.ok) throw new Error(res.error || 'บันทึกไม่สำเร็จ');
-    await showTicket({ ref: res.ref, token: res.token, house: form.house, name: form.name, people: form.people });
+    await showTicket({ ref: res.ref, token: res.token, house: form.house, name: form.name, people: form.people, zone: res.zone });
   } catch (e) {
     alertBox('alert2', 'บันทึกไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วกด “ยืนยันการลงทะเบียน” อีกครั้ง<br>หากยังไม่ได้ กรุณาโทรแจ้งตัวแทนโซนด้านล่าง');
   } finally {
@@ -488,6 +489,7 @@ const checkinURL = token => new URL(`checkin.html?t=${encodeURIComponent(token)}
 let ticketBlob = null, ticketName = 'ตั๋วเข้างาน.png';
 
 async function showTicket(t) {
+  t.zone = t.zone || zoneOf(t.house);
   try { localStorage.setItem(TICKET_KEY, JSON.stringify(t)); } catch (e) {}
   const canvas = await buildTicket(t);
   $('cardImg').src = canvas.toDataURL('image/png');
@@ -527,7 +529,7 @@ function centerText(g, txt, y, W) { g.fillText(txt, (W - g.measureText(txt).widt
 
 async function buildTicket(t) {
   try { await document.fonts.ready; } catch (e) {}
-  const W = 1080, H = 1720, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const W = 1080, H = 1800, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'), K = "'Kanit','Sarabun',Tahoma,sans-serif", S = "'Sarabun',Tahoma,sans-serif";
   const X = 50, CW = W - 100;
 
@@ -546,9 +548,15 @@ async function buildTicket(t) {
   // house + name
   g.fillStyle = '#4A5568'; g.font = `400 34px ${S}`; centerText(g, 'บ้านเลขที่', 430, W);
   g.fillStyle = '#0A1F47'; g.font = `600 120px ${K}`; centerText(g, t.house, 560, W);
+  // โซน
+  g.font = `600 40px ${K}`;
+  const zt = `โซน ${t.zone}`, zw = g.measureText(zt).width + 64;
+  g.fillStyle = '#FFF4D1'; roundRect(g, (W - zw) / 2, 590, zw, 64, 32); g.fill();
+  g.strokeStyle = '#F2B81E'; g.lineWidth = 3; roundRect(g, (W - zw) / 2, 590, zw, 64, 32); g.stroke();
+  g.fillStyle = '#0A1F47'; centerText(g, zt, 637, W);
   g.font = `700 50px ${S}`;
-  const nl = wrapThai(g, t.name, CW - 120); nl.slice(0, 2).forEach((ln, i) => centerText(g, ln, 650 + i * 60, W));
-  let y = 650 + Math.min(nl.length, 2) * 60 + 10;
+  const nl = wrapThai(g, t.name, CW - 120); nl.slice(0, 2).forEach((ln, i) => centerText(g, ln, 730 + i * 60, W));
+  let y = 730 + Math.min(nl.length, 2) * 60 + 10;
   g.fillStyle = '#15803D'; g.font = `700 38px ${S}`; centerText(g, `ผู้เข้าร่วม ${t.people} ท่าน`, y, W);
 
   // perforation
