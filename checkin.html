@@ -60,6 +60,7 @@ input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 4px rgba(242,
 .r-dup{background:var(--orange-soft);border-color:#F4C889}.r-dup .big{background:var(--orange)}.r-dup h2{color:var(--orange)}
 .r-bad{background:var(--red-soft);border-color:#F5C2BD}.r-bad .big{background:var(--red)}.r-bad h2{color:var(--red)}
 .r-info{background:#fff;border-color:var(--line)}.r-info .big{background:var(--navy)}.r-info h2{color:var(--navy)}
+.zone{display:inline-block;background:var(--gold-soft);border:2px solid var(--gold);border-radius:999px;padding:2px 16px;margin-top:8px;font-weight:700;color:var(--navy-deep)}
 .people{display:inline-block;background:#fff;border-radius:10px;padding:2px 14px;margin-top:8px;font-weight:700;color:var(--green)}
 
 /* Scanner */
@@ -152,14 +153,14 @@ async function apiPost(body) {
 const demo = { seen: {}, h: 0, p: 0 };
 async function demoPost(b) {
   await new Promise(r => setTimeout(r, 500));
-  const base = { ref: 'DEMO-001', house: '112/180', name: 'สมชาย ใจดี', people: 2 };
+  const base = { ref: 'DEMO-001', house: '112/180', name: 'สมชาย ใจดี', people: 2, zone: '74 ไร่ (เซ็นจูรี่)' };
   if (demo.seen[b.t]) return { ok: true, already: true, ...base, inAt: demo.seen[b.t], stats: { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 } };
   demo.seen[b.t] = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); demo.h++; demo.p += 2;
   return { ok: true, already: false, ...base, inAt: demo.seen[b.t], stats: { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 } };
 }
 async function demoGet(q) {
   await new Promise(r => setTimeout(r, 400));
-  if (q.action === 'findHouse') return { ok: true, token: 'demo-' + q.house, ref: 'DEMO-002', house: q.house, name: 'ทดลอง ระบบ', people: 1, status: 'ยังไม่เข้างาน' };
+  if (q.action === 'findHouse') return { ok: true, token: 'demo-' + q.house, ref: 'DEMO-002', house: q.house, name: 'ทดลอง ระบบ', people: 1, zone: '44 ไร่ (ป้อม8/1)', status: 'ยังไม่เข้างาน' };
   return { inHouses: demo.h, inPeople: demo.p, houses: 5, people: 9 };
 }
 
@@ -174,6 +175,7 @@ function card(cls, icon, title, r, extra = '') {
   $('result').innerHTML = `<div class="result ${cls}" role="status" aria-live="assertive">
     <div class="big">${icon}</div><h2>${title}</h2>
     ${r && r.house ? `<div class="house">${esc(r.house)}</div><div class="name">${esc(r.name)}</div>
+      ${r.zone ? `<div class="zone">โซน ${esc(r.zone)}</div>` : ''}
       <div class="people">ผู้เข้าร่วม ${esc(r.people)} ท่าน</div>
       <div class="meta">รหัส ${esc(r.ref)}${r.inAt ? ` · เข้างานเวลา ${esc(r.inAt)}` : ''}</div>` : ''}
     ${extra}</div>`;
