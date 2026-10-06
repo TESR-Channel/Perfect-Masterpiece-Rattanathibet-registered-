@@ -8,17 +8,38 @@
  * แท็บที่ระบบสร้างให้อัตโนมัติ:
  *   ลงทะเบียน — รายชื่อผู้ลงทะเบียนล่วงหน้า + สถานะเข้างาน
  *   เข้างาน   — บันทึกการสแกน QR หน้างานทุกครั้ง
- *   สรุป      — ยอดรวมแบบเรียลไทม์
+ *   สรุป      — ยอดรวม + แยก 4 โซน (เปอร์เซ็นต์ต่อโซน / สัดส่วนต่อทั้งหมด)
+ *   บ้านทั้งหมด — รายชื่อบ้านทุกหลังพร้อมโซน และสถานะลงทะเบียน/เข้างาน
  */
 
-const STAFF_PIN = '112296';   // ← รหัสเจ้าหน้าที่สำหรับหน้าเช็กอิน (เปลี่ยนก่อนใช้งานจริง)
+const STAFF_PIN = '0000';     // ← ใส่รหัสเจ้าหน้าที่จริงใน Apps Script เท่านั้น (repo นี้เป็น public)
 const FOLDER_ID = '';       // โฟลเดอร์ Drive เก็บไฟล์ลายเซ็น (เว้นว่างได้ — รูปลายเซ็นจะอยู่ในชีตอยู่แล้ว)
 const REF_PREFIX = 'M2-';
 const TZ = 'Asia/Bangkok';
-// ไฟล์ Google Sheets ปลายทาง (ข้อมูลคนลงทะเบียนประชุม 03-10-2026)
-const SHEET_ID = '1pL0mAus27hcZaWDFIhBaRtILEx0xol8fqCs772wn2h0';
+// ID ของไฟล์ Google Sheets ปลายทาง (ใส่ใน Apps Script เท่านั้น — เว้นว่าง = ใช้ไฟล์ที่ผูกกับสคริปต์)
+const SHEET_ID = '';
 
-const SH_REG = 'ลงทะเบียน', SH_LOG = 'เข้างาน', SH_SUM = 'สรุป';
+const SH_REG = 'ลงทะเบียน', SH_LOG = 'เข้างาน', SH_SUM = 'สรุป', SH_HOUSE = 'บ้านทั้งหมด';
+
+/* ===== โซน: บ้านเลขที่ 112/เลขแปลง → โซน (ตรงกับ houses.csv / zones.js) ===== */
+const ZONES = [
+  { name: '11 ไร่',             from: 121, to: 155, skip: [130, 132] },
+  { name: '22 ไร่ (ป้อม6)',      from: 400, to: 437, skip: [] },
+  { name: '44 ไร่ (ป้อม8/1)',    from: 1,   to: 120, skip: [1, 2, 3, 4, 6, 10, 11, 12, 13, 23] },
+  { name: '74 ไร่ (เซ็นจูรี่)',   from: 156, to: 307, skip: [] },
+];
+const ZONE_UNKNOWN = 'ไม่ทราบโซน';
+function zoneOf_(house) {
+  const m = /^112\/(\d{1,4})$/.exec(String(house || '').replace(/\s+/g, ''));
+  if (!m) return ZONE_UNKNOWN;
+  const n = Number(m[1]), z = ZONES.filter(z => n >= z.from && n <= z.to)[0];
+  return z ? z.name : ZONE_UNKNOWN;
+}
+function allHouses_() {
+  const out = [];
+  ZONES.forEach(z => { for (let n = z.from; n <= z.to; n++) if (z.skip.indexOf(n) < 0) out.push([`112/${n}`, n, z.name]); });
+  return out.sort((a, b) => a[1] - b[1]);
+}
 const ST_WAIT = 'ยังไม่เข้างาน', ST_IN = 'เข้างานแล้ว';
 
 const REG_HEADERS = ['ลำดับ', 'วันเวลาที่ลงทะเบียน', 'รหัสลงทะเบียน', 'บ้านเลขที่', 'ชื่อ และนามสกุล',
@@ -68,28 +89,87 @@ function setup_() {
     log.getRange('C:C').setNumberFormat('@');
     [150, 110, 100, 220, 110, 140, 200].forEach((w, i) => log.setColumnWidth(i + 1, w));
   }
+  let house = tab_(ss, SH_HOUSE);
+  if (!house) { house = newTab_(ss, SH_HOUSE, 4); buildHouses_(house); }
   let sum = tab_(ss, SH_SUM);
-  if (!sum) {
-    sum = newTab_(ss, SH_SUM, 3);
-    const R = `'${SH_REG}'`;
-    sum.getRange('A1').setValue('สรุปการประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569').setFontSize(16).setFontWeight('bold').setFontColor('#0E2A5E');
-    sum.getRange('A3:B8').setValues([
-      ['บ้านที่ลงทะเบียนล่วงหน้า', `=COUNTA(${R}!C2:C)`],
-      ['ผู้เข้าร่วมที่แจ้งไว้ (คน)', `=SUM(${R}!G2:G)`],
-      ['บ้านที่มาเข้างานแล้ว', `=COUNTIF(${R}!I2:I,"${ST_IN}")`],
-      ['ผู้เข้าร่วมที่มาแล้ว (คน)', `=SUMIF(${R}!I2:I,"${ST_IN}",${R}!G2:G)`],
-      ['บ้านที่ยังไม่มา', '=B3-B5'],
-      ['ผู้เข้าร่วมที่ยังไม่มา (คน)', '=B4-B6'],
-    ]);
-    sum.getRange('A3:A8').setFontSize(13);
-    sum.getRange('B3:B8').setFontSize(18).setFontWeight('bold').setHorizontalAlignment('center');
-    sum.getRange('B5:B6').setFontColor('#15803D');
-    sum.setColumnWidth(1, 260); sum.setColumnWidth(2, 140);
-  }
-  const def = tab_(ss, 'Sheet1') || tab_(ss, 'ชีต1') || tab_(ss, 'แผ่นงาน1');
+  if (!sum) sum = newTab_(ss, SH_SUM, 3);
+  if (sum.getRange('A4').getValue() !== 'โซน') { backfillZones_(reg); buildSummary_(sum); }
+  const def = tab_(ss, 'Sheet1') || tab_(ss, 'ชีต1') || tab_(ss, 'แผ่นงา๙1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 3) { try { ss.deleteSheet(def); } catch (e) {} }
   try { ss.setActiveSheet(reg); } catch (e) {}
   return { reg, log, sum };
+}
+
+/* แท็บ บ้านทั้งหมด: บ้านทุกหลัง + โซน + สถานะ (สูตรอัปเดตเอง) */
+function buildHouses_(sh) {
+  const R = `'${SH_REG}'`, list = allHouses_();
+  styleHeader_(sh, ['บ้านเลขที่', 'เลขแปลง', 'โซน', 'สถานะลงทะเบียน', 'สถานะเข้างาน']);
+  sh.getRange('A:A').setNumberFormat('@');
+  const rows = list.map((h, i) => {
+    const r = i + 2;
+    return [h[0], h[1], h[2],
+      `=IF(COUNTIF(${R}!D:D,A${r}),"ลงทะเบียนแล้ว","ยังไม่ลงทะเบียน")`,
+      `=IFERROR(INDEX(${R}!I:I,MATCH(A${r},${R}!D:D,0)),"")`];
+  });
+  sh.getRange(2, 1, rows.length, 5).setValues(rows);
+  [110, 80, 170, 150, 130].forEach((w, i) => sh.setColumnWidth(i + 1, w));
+  const rng = sh.getRange(2, 4, rows.length, 2);
+  sh.setConditionalFormatRules([
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('ลงทะเบียนแล้ว').setBackground('#E3F5EA').setFontColor('#15803D').setRanges([rng]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo(ST_IN).setBackground('#E3F5EA').setFontColor('#15803D').setBold(true).setRanges([rng]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('ยังไม่ลงทะเบียน').setFontColor('#9AA7BA').setRanges([rng]).build(),
+  ]);
+  sh.setFrozenRows(1);
+}
+
+/* ใส่โซนให้แถวเก่าที่ยังไม่มีโซน */
+function backfillZones_(reg) {
+  const last = reg.getLastRow();
+  if (last < 2) return;
+  const vals = reg.getRange(2, 1, last - 1, C.zone).getValues();
+  const zones = vals.map(r => [r[C.zone - 1] || zoneOf_(r[C.house - 1])]);
+  reg.getRange(2, C.zone, zones.length, 1).setValues(zones);
+}
+
+/* แท็บ สรุป: ภาพรวม + แยก 4 โซน */
+function buildSummary_(sh) {
+  sh.clear(); sh.getCharts().forEach(c => sh.removeChart(c));
+  const R = `'${SH_REG}'`, H = `'${SH_HOUSE}'`;
+  sh.getRange('A1').setValue('สรุปการประชุมใหญ่ลูกบ้าน ครั้งที่ 2/2569').setFontSize(16).setFontWeight('bold').setFontColor('#0E2A5E');
+  sh.getRange('A2').setValue('อัปเดตอัตโนมัติจากแท็บ ลงทะเบียน และ บ้านทั้งหมด').setFontColor('#4A5568');
+  const head = ['โซน', 'บ้านทั้งหมด', 'ลงทะเบียน (บ้าน)', '% ลงทะเบียนของโซน', 'ผู้เข้าร่วมที่แจ้ง (คน)',
+    'สัดส่วนของผู้ลงทะเบียนทั้งหมด', 'มาเข้างาน (บ้าน)', '% มาเข้างานของโซน', 'มาเข้างาน (คน)'];
+  sh.getRange(4, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#0E2A5E').setFontColor('#FFFFFF').setWrap(true).setVerticalAlignment('middle');
+  const names = ZONES.map(z => z.name).concat([ZONE_UNKNOWN]);
+  const first = 5, tot = first + names.length;
+  const rows = names.map((n, i) => {
+    const r = first + i;
+    return [n,
+      n === ZONE_UNKNOWN ? 0 : `=COUNTIF(${H}!C2:C,A${r})`,
+      `=COUNTIF(${R}!K2:K,A${r})`,
+      `=IFERROR(C${r}/B${r},0)`,
+      `=SUMIF(${R}!K2:K,A${r},${R}!G2:G)`,
+      `=IFERROR(C${r}/C$${tot},0)`,
+      `=COUNTIFS(${R}!K2:K,A${r},${R}!I2:I,"${ST_IN}")`,
+      `=IFERROR(G${r}/B${r},0)`,
+      `=SUMIFS(${R}!G2:G,${R}!K2:K,A${r},${R}!I2:I,"${ST_IN}")`];
+  });
+  rows.push(['รวมทั้งหมด', `=SUM(B${first}:B${tot - 1})`, `=SUM(C${first}:C${tot - 1})`, `=IFERROR(C${tot}/B${tot},0)`,
+    `=SUM(E${first}:E${tot - 1})`, `=IFERROR(C${tot}/C${tot},0)`, `=SUM(G${first}:G${tot - 1})`, `=IFERROR(G${tot}/B${tot},0)`, `=SUM(I${first}:I${tot - 1})`]);
+  sh.getRange(first, 1, rows.length, head.length).setValues(rows).setFontSize(12).setVerticalAlignment('middle');
+  sh.getRange(first, 2, rows.length, head.length - 1).setHorizontalAlignment('center');
+  [`D${first}:D${tot}`, `F${first}:F${tot}`, `H${first}:H${tot}`].forEach(a => sh.getRange(a).setNumberFormat('0.0%'));
+  sh.getRange(tot, 1, 1, head.length).setFontWeight('bold').setBackground('#FFF4D1');
+  sh.getRange(first + names.length - 1, 1, 1, head.length).setFontColor('#9AA7BA');
+  sh.setColumnWidth(1, 190); for (let c = 2; c <= head.length; c++) sh.setColumnWidth(c, 125);
+  sh.setRowHeight(4, 48); sh.setFrozenRows(4);
+  try {
+    sh.insertChart(sh.newChart().setChartType(Charts.ChartType.COLUMN)
+      .addRange(sh.getRange(`A4:A${first + ZONES.length - 1}`)).addRange(sh.getRange(`D4:D${first + ZONES.length - 1}`))
+      .setNumHeaders(1).setPosition(tot + 2, 1, 0, 0)
+      .setOption('title', '% ลงทะเบียนของแต่ละโซน').setOption('legend', { position: 'none' })
+      .setOption('vAxis', { format: 'percent', minValue: 0, maxValue: 1 }).setOption('colors', ['#0E2A5E']).build());
+  } catch (e) {}
 }
 
 /* ---------- Helpers ---------- */
@@ -111,7 +191,8 @@ function find_(reg, col, value) {
 }
 function info_(r) {
   return { ref: r[C.ref - 1], house: String(r[C.house - 1]), name: r[C.name - 1],
-    people: Number(r[C.people - 1]) || 1, status: r[C.status - 1], inAt: fmt_(r[C.inAt - 1]) };
+    people: Number(r[C.people - 1]) || 1, status: r[C.status - 1], inAt: fmt_(r[C.inAt - 1]),
+    zone: r[C.zone - 1] || zoneOf_(r[C.house - 1]) };
 }
 function stats_(reg) {
   const rs = rows_(reg);
@@ -194,7 +275,8 @@ function register_({ reg }, d) {
     fileUrl = DriveApp.getFolderById(FOLDER_ID).createFile(blob).getUrl();
   }
 
-  reg.appendRow([seq, now, ref, house, name, phone, people, '', ST_WAIT, '', '', token, fileUrl,
+  const zone = zoneOf_(house);
+  reg.appendRow([seq, now, ref, house, name, phone, people, '', ST_WAIT, '', zone, token, fileUrl,
     String(d.ua || '').slice(0, 150)]);
   const row = reg.getLastRow();
   reg.getRange(row, C.when).setNumberFormat('d/m/yyyy hh:mm');
@@ -204,7 +286,7 @@ function register_({ reg }, d) {
   } catch (err) {
     reg.getRange(row, C.sig).setValue(fileUrl ? 'ดูไฟล์ Drive' : 'บันทึกรูปไม่สำเร็จ');
   }
-  return { ok: true, ref, token, when: fmt_(now) };
+  return { ok: true, ref, token, zone, when: fmt_(now) };
 }
 
 function checkin_({ reg, log }, d) {
@@ -228,6 +310,7 @@ function checkin_({ reg, log }, d) {
 /** รันครั้งเดียวด้วยมือ: สร้างแท็บทั้งหมด + ขอสิทธิ์ Sheets/Drive */
 function authorize() {
   const t = setup_();
+  backfillZones_(t.reg); buildSummary_(t.sum);
   Logger.log('พร้อมใช้งาน: ' + ss_().getSheets().map(s => s.getName()).join(', '));
   if (FOLDER_ID) DriveApp.getFolderById(FOLDER_ID).getName();
   else DriveApp.getRootFolder().getName();
